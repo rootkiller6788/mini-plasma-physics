@@ -1,0 +1,32 @@
+/**
+ * mhd_core.c -- Magnetohydrodynamics Core Implementations
+ *
+ * Every function implements one independent MHD concept.
+ * References: Priest (1982), Kivelson & Russell S4,
+ * Goldston & Rutherford S9, MIT 22.615 MHD Theory
+ * Brio & Wu (1988) JCP 75:400, Powell et al. (1999) JCP 154:284
+ *
+ * Knowledge: L1-L6 MHD theory and computation
+ */
+#include "../include/space_plasma.h"
+#include "../include/mhd_core.h"
+#include <math.h>
+#include <string.h>
+
+void mhd_prim_to_cons(const mhd_primitive_t *prim, mhd_conserved_t *cons, double gamma) {
+    if (!prim || !cons) return;
+    double rho = prim->rho;
+    if (rho < 0.0) rho = 0.0;
+    cons->D = rho;
+    cons->Mx = rho * prim->vx;
+    cons->My = rho * prim->vy;
+    cons->Mz = rho * prim->vz;
+    cons->Bx = prim->Bx;
+    cons->By = prim->By;
+    cons->Bz = prim->Bz;
+    double v2 = prim->vx*prim->vx + prim->vy*prim->vy + prim->vz*prim->vz;
+    double B2 = prim->Bx*prim->Bx + prim->By*prim->By + prim->Bz*prim->Bz;
+    double gm1 = gamma - 1.0;
+    if (gm1 <= 1e-15) gm1 = 2.0/3.0;
+    cons->E = prim->p / gm1 + 0.5 * rho * v2 + 0.5 * B2 / SP_MU0;
+}
